@@ -376,6 +376,197 @@ const BackupModule = {
                 pathInput.value = `C:\\Backup\\${file.name}`;
             }
         }
+    },
+
+    // ============================================
+    // SERVER FILE BROWSER (Browse SQL Server Machine)
+    // ============================================
+
+    currentBrowsePath: 'C:\\',
+    currentInputTarget: null,
+
+    // Open server file browser modal
+    async openServerBrowser(inputId) {
+        this.currentInputTarget = inputId;
+        
+        // Create modal if it doesn't exist
+        if (!document.getElementById('serverFileBrowserModal')) {
+            this.createServerBrowserModal();
+        }
+        
+        // Show modal
+        document.getElementById('serverFileBrowserModal').style.display = 'flex';
+        
+        // Load backup locations
+        await this.loadBackupLocations();
+    },
+
+    // Create the server file browser modal
+    createServerBrowserModal() {
+        const modalHTML = `
+            <div id="serverFileBrowserModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 700px; max-height: 80vh;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>📁 Browse SQL Server Files</h3>
+                        <button class="modal-close-btn" onclick="BackupModule.closeServerBrowser()">✕</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #9aa0a6; font-size: 12px; display: block; margin-bottom: 5px;">Quick Locations:</label>
+                        <div id="quickLocations" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #9aa0a6; font-size: 12px; display: block; margin-bottom: 5px;">Current Path:</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="browserCurrentPath" readonly style="flex: 1; background: rgba(26, 29, 41, 0.6);">
+                            <button onclick="BackupModule.browseParentFolder()" style="padding: 8px 16px;">⬆️ Up</button>
+                        </div>
+                    </div>
+                    
+                    <div id="fileBrowserContent" style="max-height: 400px; overflow-y: auto; background: rgba(26, 29, 41, 0.6); border: 1px solid #2f3339; border-radius: 6px; padding: 10px;">
+                        <p style="text-align: center; color: #9aa0a6;">Loading...</p>
+                    </div>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="cancel-btn" onclick="BackupModule.closeServerBrowser()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    },
+
+    // Close server browser modal
+    closeServerBrowser() {
+        const modal = document.getElementById('serverFileBrowserModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    },
+
+    // Load backup locations (quick access)
+    async loadBackupLocations() {
+        try {
+            const response = await fetch('/api/backup-locations');
+            const locations = await response.json();
+            
+            const quickLocDiv = document.getElementById('quickLocations');
+            quickLocDiv.innerHTML = '';
+            
+            locations.forEach(loc => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-location-btn';
+                btn.textContent = loc.isDefault ? '⭐ ' + loc.name : loc.name;
+                btn.onclick = () => this.browsePath(loc.path);
+                quickLocDiv.appendChild(btn);
+            });
+            
+            // Load default path
+            if (locations.length > 0 && locations[0].isDefault) {
+                await this.browsePath(locations[0].path);
+            } else {
+                await this.browsePath('C:\\');
+            }
+            
+        } catch (error) {
+            console.error('Failed to load backup locations:', error);
+            await this.browsePath('C:\\');
+        }
+    },
+
+    // Browse to specific path
+    async browsePath(path) {
+        this.currentBrowsePath = path;
+        document.getElementById('browserCurrentPath').value = path;
+        
+        try {
+            const response = await fetch('/api/browse-server-path', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to browse path');
+            }
+            
+            this.displayBrowserItems(result.items);
+            
+        } catch (error) {
+            document.getElementById('fileBrowserContent').innerHTML = 
+                `<p style="color: #ea4335; text-align: center;">❌ Error: ${error.message}</p>`;
+        }
+    },
+
+    // Display browser items
+    displayBrowserItems(items) {
+        const contentDiv = document.getElementById('fileBrowserContent');
+        
+        if (items.length === 0) {
+            contentDiv.innerHTML = '<p style="text-align: center; color: #9aa0a6;">Empty folder</p>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 5px;">';
+        
+        items.forEach(item => {
+            const icon = item.type === 'folder' ? '📁' : (item.isBackupFile ? '💾' : '📄');
+            const itemClass = item.type === 'folder' ? 'browser-folder' : 'browser-file';
+            const clickAction = item.type === 'folder' 
+                ? `BackupModule.browseInto('${this.escapeHtml(item.name)}')`
+                : `BackupModule.selectFile('${this.escapeHtml(item.name)}')`;
+            
+            html += `
+                <div class="${itemClass}" onclick="${clickAction}">
+                    <span>${icon} ${this.escapeHtml(item.name)}</span>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        contentDiv.innerHTML = html;
+    },
+
+    // Browse into a folder
+    async browseInto(folderName) {
+        const newPath = this.currentBrowsePath.endsWith('\\') 
+            ? this.currentBrowsePath + folderName
+            : this.currentBrowsePath + '\\' + folderName;
+        
+        await this.browsePath(newPath);
+    },
+
+    // Browse to parent folder
+    async browseParentFolder() {
+        const parts = this.currentBrowsePath.split('\\');
+        if (parts.length <= 2) {
+            // Already at root (e.g., C:\)
+            return;
+        }
+        
+        parts.pop(); // Remove last part
+        const parentPath = parts.join('\\');
+        await this.browsePath(parentPath);
+    },
+
+    // Select a file
+    selectFile(fileName) {
+        const fullPath = this.currentBrowsePath.endsWith('\\')
+            ? this.currentBrowsePath + fileName
+            : this.currentBrowsePath + '\\' + fileName;
+        
+        // Set the path in the target input
+        document.getElementById(this.currentInputTarget).value = fullPath;
+        
+        // Close modal
+        this.closeServerBrowser();
+        
+        // Show success message
+        this.showSuccess(`✅ Selected: ${fullPath}`);
     }
 };
 

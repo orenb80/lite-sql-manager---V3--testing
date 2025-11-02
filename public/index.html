@@ -306,10 +306,9 @@
                     <label for="backupPath">Backup File Path</label>
                     <div class="input-with-button">
                         <input type="text" id="backupPath" placeholder="C:\Backup\MyDatabase.bak">
-                        <input type="file" id="backupPathFile" accept=".bak" style="display: none;" onchange="BackupModule.handleBackupFileSelect(this)">
-                        <button type="button" class="browse-btn" onclick="document.getElementById('backupPathFile').click()">📁 Browse</button>
+                        <button type="button" class="browse-btn-dots" onclick="BackupModule.openServerBrowser('backupPath')" title="Browse SQL Server files">⋯</button>
                     </div>
-                    <div class="help-text">Specify the full path where the backup file will be saved. Example: C:\Backup\MyDB_2025.bak</div>
+                    <div class="help-text">📁 Click ⋯ to browse files on SQL Server machine, or type path manually</div>
                 </div>
                 <div class="form-group">
                     <label for="backupDescription">Description (Optional)</label>
@@ -327,10 +326,9 @@
                     <label for="restoreBackupPath">Backup File Path</label>
                     <div class="input-with-button">
                         <input type="text" id="restoreBackupPath" placeholder="C:\Backup\MyDatabase.bak">
-                        <input type="file" id="restoreBackupFile" accept=".bak" style="display: none;" onchange="BackupModule.handleRestoreFileSelect(this)">
-                        <button type="button" class="browse-btn" onclick="document.getElementById('restoreBackupFile').click()">📁 Browse</button>
+                        <button type="button" class="browse-btn-dots" onclick="BackupModule.openServerBrowser('restoreBackupPath')" title="Browse SQL Server files">⋯</button>
                     </div>
-                    <div class="help-text">Specify the backup file to restore from</div>
+                    <div class="help-text">📁 Click ⋯ to browse .bak files on SQL Server machine</div>
                 </div>
                 <div class="form-group">
                     <label for="restoreDatabaseSelect">Target Database</label>
@@ -354,9 +352,9 @@
                     <label for="verifyBackupPath">Backup File Path</label>
                     <div class="input-with-button">
                         <input type="text" id="verifyBackupPath" placeholder="C:\Backup\MyDatabase.bak">
-                        <input type="file" id="verifyBackupFile" accept=".bak" style="display: none;" onchange="BackupModule.handleVerifyFileSelect(this)">
-                        <button type="button" class="browse-btn" onclick="document.getElementById('verifyBackupFile').click()">📁 Browse</button>
+                        <button type="button" class="browse-btn-dots" onclick="BackupModule.openServerBrowser('verifyBackupPath')" title="Browse SQL Server files">⋯</button>
                     </div>
+                    <div class="help-text">📁 Click ⋯ to browse .bak files on SQL Server machine</div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                     <button onclick="BackupModule.verifyBackup()">🔍 Verify Backup</button>

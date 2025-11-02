@@ -1048,6 +1048,139 @@ app.post('/api/backup/info', requireConnection, async (req, res) => {
     }
 });
 
+// ============================================
+// SERVER FILE SYSTEM BROWSING (For SQL Server Machine)
+// ============================================
+
+// Browse directories on SQL Server machine
+app.post('/api/browse-server-path', requireConnection, async (req, res) => {
+    const { path: browsePath } = req.body;
+    
+    console.log('[INFO] Browse server path request:', browsePath);
+    
+    const { pool } = connectionPools.get(req.session.connectionId);
+    
+    try {
+        // Use xp_dirtree to list directories and files
+        // Note: This requires appropriate permissions on SQL Server
+        const query = `
+            DECLARE @path NVARCHAR(500) = @browsePath;
+            
+            -- Get directories
+            CREATE TABLE #dirs (
+                subdirectory NVARCHAR(512),
+                depth INT,
+                isFile BIT
+            );
+            
+            INSERT INTO #dirs
+            EXEC xp_dirtree @path, 1, 1;
+            
+            SELECT 
+                subdirectory as name,
+                CASE WHEN isFile = 0 THEN 'folder' ELSE 'file' END as type,
+                CASE WHEN isFile = 1 AND subdirectory LIKE '%.bak' THEN 1 ELSE 0 END as isBackupFile
+            FROM #dirs
+            ORDER BY isFile, subdirectory;
+            
+            DROP TABLE #dirs;
+        `;
+        
+        const result = await pool.request()
+            .input('browsePath', sql.NVarChar, browsePath)
+            .query(query);
+        
+        console.log(`[SUCCESS] Listed ${result.recordset.length} items`);
+        res.json({
+            path: browsePath,
+            items: result.recordset
+        });
+        
+    } catch (err) {
+        console.error('[ERROR] Browse path failed:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get available drives on SQL Server machine
+app.get('/api/server-drives', requireConnection, async (req, res) => {
+    const { pool } = connectionPools.get(req.session.connectionId);
+    
+    try {
+        // Get available drives using xp_fixeddrives
+        const query = `
+            EXEC xp_fixeddrives;
+        `;
+        
+        const result = await pool.request().query(query);
+        
+        // Format as drive letters
+        const drives = result.recordset.map(row => ({
+            drive: row.drive + ':\\',
+            name: `${row.drive}: Drive`,
+            freeMB: row.MB_free || 0
+        }));
+        
+        console.log(`[SUCCESS] Found ${drives.length} drives`);
+        res.json(drives);
+        
+    } catch (err) {
+        console.error('[ERROR] Get drives failed:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get common backup locations on SQL Server machine
+app.get('/api/backup-locations', requireConnection, async (req, res) => {
+    const { pool } = connectionPools.get(req.session.connectionId);
+    
+    try {
+        // Get SQL Server's default backup directory
+        const query = `
+            DECLARE @BackupDirectory NVARCHAR(512);
+            
+            EXEC master.dbo.xp_instance_regread 
+                N'HKEY_LOCAL_MACHINE',
+                N'Software\\Microsoft\\MSSQLServer\\MSSQLServer',
+                N'BackupDirectory',
+                @BackupDirectory OUTPUT;
+            
+            SELECT @BackupDirectory as defaultBackupPath;
+        `;
+        
+        const result = await pool.request().query(query);
+        
+        const locations = [];
+        
+        // Add default backup directory
+        if (result.recordset[0] && result.recordset[0].defaultBackupPath) {
+            locations.push({
+                path: result.recordset[0].defaultBackupPath,
+                name: 'SQL Server Default Backup Folder',
+                isDefault: true
+            });
+        }
+        
+        // Add common backup locations
+        locations.push(
+            { path: 'C:\\Backup', name: 'C:\\Backup', isDefault: false },
+            { path: 'D:\\Backup', name: 'D:\\Backup', isDefault: false },
+            { path: 'C:\\SQLBackups', name: 'C:\\SQLBackups', isDefault: false }
+        );
+        
+        console.log('[SUCCESS] Retrieved backup locations');
+        res.json(locations);
+        
+    } catch (err) {
+        console.error('[ERROR] Get backup locations failed:', err.message);
+        // Return some defaults even if query fails
+        res.json([
+            { path: 'C:\\Backup', name: 'C:\\Backup', isDefault: false },
+            { path: 'D:\\Backup', name: 'D:\\Backup', isDefault: false }
+        ]);
+    }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', activeConnections: connectionPools.size });

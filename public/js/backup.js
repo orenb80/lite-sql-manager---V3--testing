@@ -308,6 +308,74 @@ const BackupModule = {
 
     showSuccess(message) {
         alert(message);
+    },
+
+    // Handle file selection for backup path
+    handleBackupFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const fileName = file.name;
+            
+            // For backup, we're selecting a location/name, so just use the filename
+            // User will likely need to edit the full path
+            const pathInput = document.getElementById('backupPath');
+            
+            // Try to construct a reasonable path
+            // Note: Browsers don't give us full path for security reasons
+            if (file.path) {
+                // If running in Electron or similar, might have full path
+                pathInput.value = file.path;
+            } else {
+                // Otherwise, suggest a common backup location with the selected filename
+                pathInput.value = `C:\\Backup\\${fileName}`;
+            }
+        }
+    },
+
+    // Handle file selection for restore path
+    handleRestoreFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            const pathInput = document.getElementById('restoreBackupPath');
+            
+            if (file.path) {
+                // Full path available (Electron/packaged app)
+                pathInput.value = file.path;
+            } else {
+                // Browser context - use name and suggest path
+                pathInput.value = `C:\\Backup\\${file.name}`;
+                
+                // Show helpful message
+                const helpText = pathInput.nextElementSibling.nextElementSibling;
+                if (helpText && helpText.classList.contains('help-text')) {
+                    const originalText = helpText.textContent;
+                    helpText.textContent = `⚠️ Note: You may need to edit the path. Browser selected: ${file.name}`;
+                    helpText.style.color = '#fbbc04';
+                    setTimeout(() => {
+                        helpText.textContent = originalText;
+                        helpText.style.color = '';
+                    }, 5000);
+                }
+            }
+        }
+    },
+
+    // Handle file selection for verify path
+    handleVerifyFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            const pathInput = document.getElementById('verifyBackupPath');
+            
+            if (file.path) {
+                // Full path available (Electron/packaged app)
+                pathInput.value = file.path;
+            } else {
+                // Browser context - use name and suggest path
+                pathInput.value = `C:\\Backup\\${file.name}`;
+            }
+        }
     }
 };
 

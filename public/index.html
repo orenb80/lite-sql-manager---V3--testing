@@ -75,7 +75,7 @@
             </div>
         </div>
         <h1>📊 SQL Server Manager</h1>
-
+        
         <!-- Mode Tabs -->
         <div class="mode-tabs">
             <button class="mode-tab active" onclick="switchMode('simple')">🔍 Simple Search</button>
@@ -85,7 +85,7 @@
             <button class="mode-tab" onclick="switchMode('schema')">🗂️ Schema Viewer</button>
             <button class="mode-tab" onclick="switchMode('backup')">💾 Backup & Restore</button>
         </div>
-
+        
         <!-- Simple Search Mode -->
         <div id="simpleMode">
             <div class="selection-section">
@@ -105,13 +105,13 @@
                     </div>
                 </div>
             </div>
-
+            
             <div id="searchSection" class="hidden">
                 <div class="search-criteria">
                     <h2>Search Criteria</h2>
                     <div id="criteriaContainer"></div>
                     <button class="add-criteria-btn" onclick="addCriteria()">+ Add Field</button>
-
+                    
                     <div class="advanced-options">
                         <div class="form-group">
                             <label for="resultLimit">Result Limit</label>
@@ -138,7 +138,7 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <div class="checkbox-group" style="margin-top: 15px;">
                         <label><input type="checkbox" id="distinctResults">DISTINCT (unique rows only)</label>
                     </div>
@@ -150,7 +150,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Custom SQL Mode -->
         <div id="customMode" class="hidden">
             <div class="selection-section">
@@ -172,7 +172,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Join Tables Mode -->
         <div id="joinsMode" class="hidden">
             <div class="selection-section">
@@ -189,14 +189,14 @@
                         <option value="">-- Select Primary Table --</option>
                     </select>
                 </div>
-
+                
                 <div id="joinControls" class="hidden">
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 14px;">Build Joins</h3>
                     <div id="joinsContainer"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 30px 0 15px 0; font-size: 14px;">Generated SQL</h3>
                     <textarea id="joinSQLPreview" readonly></textarea>
-
+                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                         <button id="executeJoinBtn" onclick="JoinsBuilder.executeJoin()">▶️ Execute Join</button>
                         <button onclick="JoinsBuilder.clear()" style="background: #95a5a6;">🧹 Clear</button>
@@ -204,7 +204,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Aggregations Mode -->
         <div id="aggregationsMode" class="hidden">
             <div class="selection-section">
@@ -221,25 +221,25 @@
                         <option value="">-- Select Table --</option>
                     </select>
                 </div>
-
+                
                 <div id="aggControls" class="hidden">
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 14px;">Select Columns</h3>
                     <div id="aggColumnsContainer"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 14px;">Aggregate Functions</h3>
                     <div id="aggFunctionsContainer"></div>
                     <button class="add-criteria-btn" onclick="AggregationsBuilder.addAggregateFunction()">+ Add Function</button>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 14px;">GROUP BY Columns</h3>
                     <div id="aggGroupByContainer"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 14px;">HAVING Conditions (Optional)</h3>
                     <div id="aggHavingContainer"></div>
                     <button class="add-criteria-btn" onclick="AggregationsBuilder.addHavingCondition()">+ Add Condition</button>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 30px 0 15px 0; font-size: 14px;">Generated SQL</h3>
                     <textarea id="aggSQLPreview" readonly></textarea>
-
+                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                         <button id="executeAggBtn" onclick="AggregationsBuilder.executeAggregation()">▶️ Execute Query</button>
                         <button onclick="AggregationsBuilder.clear()" style="background: #95a5a6;">🧹 Clear</button>
@@ -247,7 +247,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Schema Viewer Mode -->
         <div id="schemaMode" class="hidden">
             <div class="selection-section">
@@ -264,26 +264,26 @@
                         <option value="">-- Select Table --</option>
                     </select>
                 </div>
-
+                
                 <div id="schemaDetails" class="hidden">
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 16px;">Table Information</h3>
                     <div id="schemaTableInfo"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 16px;">Columns</h3>
                     <div id="schemaColumns"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 16px;">Primary Keys</h3>
                     <div id="schemaPrimaryKeys"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 16px;">Foreign Keys</h3>
                     <div id="schemaForeignKeys"></div>
-
+                    
                     <h3 style="color: #c5c7ca; margin: 20px 0 15px 0; font-size: 16px;">Indexes</h3>
                     <div id="schemaIndexes"></div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Backup & Restore Mode -->
         <div id="backupMode" class="hidden">
             <div class="selection-section">
@@ -304,7 +304,11 @@
                 </div>
                 <div class="form-group">
                     <label for="backupPath">Backup File Path</label>
-                    <input type="text" id="backupPath" placeholder="C:\Backup\MyDatabase.bak">
+                    <div class="input-with-button">
+                        <input type="text" id="backupPath" placeholder="C:\Backup\MyDatabase.bak">
+                        <input type="file" id="backupPathFile" accept=".bak" style="display: none;" onchange="BackupModule.handleBackupFileSelect(this)">
+                        <button type="button" class="browse-btn" onclick="document.getElementById('backupPathFile').click()">📁 Browse</button>
+                    </div>
                     <div class="help-text">Specify the full path where the backup file will be saved. Example: C:\Backup\MyDB_2025.bak</div>
                 </div>
                 <div class="form-group">
@@ -321,7 +325,11 @@
                 <h2>📥 Database Restore</h2>
                 <div class="form-group">
                     <label for="restoreBackupPath">Backup File Path</label>
-                    <input type="text" id="restoreBackupPath" placeholder="C:\Backup\MyDatabase.bak">
+                    <div class="input-with-button">
+                        <input type="text" id="restoreBackupPath" placeholder="C:\Backup\MyDatabase.bak">
+                        <input type="file" id="restoreBackupFile" accept=".bak" style="display: none;" onchange="BackupModule.handleRestoreFileSelect(this)">
+                        <button type="button" class="browse-btn" onclick="document.getElementById('restoreBackupFile').click()">📁 Browse</button>
+                    </div>
                     <div class="help-text">Specify the backup file to restore from</div>
                 </div>
                 <div class="form-group">
@@ -344,7 +352,11 @@
                 <h2>🔍 Verify Backup</h2>
                 <div class="form-group">
                     <label for="verifyBackupPath">Backup File Path</label>
-                    <input type="text" id="verifyBackupPath" placeholder="C:\Backup\MyDatabase.bak">
+                    <div class="input-with-button">
+                        <input type="text" id="verifyBackupPath" placeholder="C:\Backup\MyDatabase.bak">
+                        <input type="file" id="verifyBackupFile" accept=".bak" style="display: none;" onchange="BackupModule.handleVerifyFileSelect(this)">
+                        <button type="button" class="browse-btn" onclick="document.getElementById('verifyBackupFile').click()">📁 Browse</button>
+                    </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                     <button onclick="BackupModule.verifyBackup()">🔍 Verify Backup</button>
@@ -361,10 +373,10 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Messages -->
         <div id="message" class="hidden"></div>
-
+        
         <!-- Results -->
         <div id="resultsContainer" class="hidden">
             <div class="results-header">
